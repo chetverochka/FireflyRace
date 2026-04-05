@@ -9,6 +9,8 @@ class ObjectSprite;
 
 class PlayLayer : public cocos2d::Layer, public ObjectEventProtocol {
 public:
+	static const cocos2d::CameraFlag CAMERA_FLAG;
+	static const unsigned int CAMERA_FLAG_UINT;
 	static cocos2d::Scene* scene(Level&);
 
 	CREATE_FUNC(PlayLayer);

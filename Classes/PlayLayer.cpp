@@ -4,6 +4,9 @@
 
 USING_NS_CC;
 
+const cocos2d::CameraFlag	PlayLayer::CAMERA_FLAG		 = cocos2d::CameraFlag::USER1;
+const unsigned int			PlayLayer::CAMERA_FLAG_UINT	 = (unsigned int)(CAMERA_FLAG);
+
 Scene* PlayLayer::scene(Level& level) {
 	PlayLayer* layer = new(std::nothrow) PlayLayer();
 
@@ -61,6 +64,7 @@ bool PlayLayer::initWithData(Level& level) {
 	const Size visibleSize = Director::sharedDirector()->getVisibleSize();
 
 	_camera = Camera::createOrthographic(visibleSize.width, visibleSize.height, -1024, 1024);
+	_camera->setCameraFlag(CAMERA_FLAG);
 	addChild(_camera, 10);
 
 	_APointObject = ObjectSprite::create();
@@ -129,6 +133,7 @@ bool PlayLayer::addObject(ObjectSprite* object) {
 	}
 
 	object->setEventNotifier(this);
+	object->setCameraMask(CAMERA_FLAG_UINT, true);
 
 	return true;
 }
