@@ -1,0 +1,12 @@
+proj.win32/bin
+proj.win32/Debug
+proj.win32/.vs
+proj.win32/FireflyRace.dir
+proj.win32/engine
+proj.win32/lib
+cocos2d/
+proj.android/.gradle
+proj.android/.idea
+proj.android/app/build
+proj.android/app/.cxx
+

@@ -1,0 +1,10 @@
+^D:\PROJECTSCPP\COCOS2D\FIREFLYRACE\PROJ.WIN32\CMAKEFILES\B7F6DE6F24B690136B2F7466BDF50147\GENERATE.STAMP.RULE
+setlocal
+C:\Users\user\AppData\Local\Android\Sdk\cmake\3.30.3\bin\cmake.exe -SD:/projectscpp/cocos2d/FireflyRace -BD:/projectscpp/cocos2d/FireflyRace/proj.win32 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/projectscpp/cocos2d/FireflyRace/proj.win32/FireflyRace.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
