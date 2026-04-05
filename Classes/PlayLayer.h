@@ -28,6 +28,8 @@ public:
 	bool loadLevel(Level&);
 	bool addObject(ObjectSprite*);
 	bool removeObject(ObjectSprite*);
+	const cocos2d::Rect& getVisibleArea(cocos2d::Camera*) const;
+	const cocos2d::Rect& getVisibleArea() const override;
 private:
 	ObjectSprite* _APointObject;
 	ObjectSprite* _BPointObject;

@@ -161,3 +161,22 @@ bool PlayLayer::removeObject(ObjectSprite* object) {
 
 	return true;
 }
+
+const cocos2d::Rect& PlayLayer::getVisibleArea(cocos2d::Camera* camera) const {
+	// static is too dangerous here
+	static const Size visibleSize = Director::sharedDirector()->getVisibleSize(); 
+	static float zoomX, zoomY;
+
+	zoomX = 1.f;
+	zoomY = 1.f;
+
+	Rect ret;
+	ret.size = Size(visibleSize.width * zoomX, visibleSize.height * zoomY);
+	ret.origin = camera->getPosition() - (ret.size / 2);
+
+	return ret;
+}
+
+const cocos2d::Rect& PlayLayer::getVisibleArea() const {
+	return getVisibleArea(_camera);
+}
