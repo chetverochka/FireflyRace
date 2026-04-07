@@ -6,6 +6,7 @@
 
 struct Level;
 class ObjectSprite;
+class Firefly;
 
 class PlayLayer : public cocos2d::Layer, public ObjectEventProtocol {
 public:
@@ -30,9 +31,12 @@ public:
 	bool removeObject(ObjectSprite*);
 	const cocos2d::Rect& getVisibleArea(cocos2d::Camera*) const;
 	const cocos2d::Rect& getVisibleArea() const override;
+
+	void setupCameraBetween(const cocos2d::Vec2& left, const cocos2d::Vec2& right, const bool smooth);
 private:
 	ObjectSprite* _APointObject;
 	ObjectSprite* _BPointObject;
+	ObjectSprite* _currentObject;
 
 	cocos2d::Node* _batchNodeBottom; // should be a batch node but -_- i am too lazy to add my sprites into atlas today
 	cocos2d::Node* _batchNodeTop; // should be a batch node but -_- i am too lazy to add my sprites into atlas today
@@ -40,6 +44,9 @@ private:
 	cocos2d::Vector<ObjectSprite*> _allObjects;
 
 	cocos2d::Camera* _camera;
+
+	cocos2d::DrawNode* _AtoBLine;
+	Firefly* _firefly;
 };
 
 #endif //!__PLAY_LAYER_H__

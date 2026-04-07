@@ -1,6 +1,7 @@
 #include "PlayLayer.h"
 #include "Level.h"
 #include "ObjectSprite.h"
+#include "Firefly.h"
 
 USING_NS_CC;
 
@@ -32,6 +33,7 @@ PlayLayer::PlayLayer()
 	, _batchNodeTop(NULL)
 	, _batchNodeMiddle(NULL)
 	, _allObjects({})
+	, _AtoBLine(NULL)
 {
 
 }
@@ -61,6 +63,10 @@ bool PlayLayer::initWithData(Level& level) {
 	_batchNodeMiddle = Node::create();
 	addChild(_batchNodeMiddle, 0);
 
+	_AtoBLine = DrawNode::create();
+	_AtoBLine->drawLine(Vec2(level.APosX, 0), Vec2(level.BPosX, 0), Color4F(1,1,1,0.1f));
+	addChild(_AtoBLine, -2);
+
 	const Size visibleSize = Director::sharedDirector()->getVisibleSize();
 
 	_camera = Camera::createOrthographic(visibleSize.width, visibleSize.height, -1024, 1024);
@@ -74,7 +80,17 @@ bool PlayLayer::initWithData(Level& level) {
 	addObject(_APointObject);
 	addObject(_BPointObject);
 
+	_currentObject = _APointObject;
+
 	loadLevel(level);
+
+	_firefly = Firefly::create();
+	_firefly->addEffectsNode(this, -10);
+	addChild(_firefly, 10);
+
+	setCameraMask(CAMERA_FLAG_UINT, true);
+
+	setupCameraBetween(_APointObject->getPosition(), _BPointObject->getPosition(), true);
 
 	return true;
 }
@@ -82,12 +98,22 @@ bool PlayLayer::initWithData(Level& level) {
 void PlayLayer::update(float deltaTime) {
 	Layer::update(deltaTime);
 
-	const Size visibleSize = Director::sharedDirector()->getVisibleSize();
+	for (int i = 0; i < _allObjects.size(); i++) {
+		ObjectSprite* object = _allObjects.at(i);
+
+		// should be at the and of all logic operations in this iteration
+		/*if (object->isRealTransformDirty()) {
+			object->updateRealTransform();
+		}*/
+	}
+
+	// update camera
+	/*const Size visibleSize = Director::sharedDirector()->getVisibleSize();
 	const Vec2 targetCameraPos = _APointObject->getPosition();
 	Vec2 cameraPos;
 	cameraPos.x = targetCameraPos.x - visibleSize.width / 2;
 	cameraPos.y = targetCameraPos.y - visibleSize.height / 2;
-	_camera->setPosition(cameraPos);
+	_camera->setPosition(cameraPos);*/
 }
 
 ObjectSprite* PlayLayer::createObject(cocos2d::ValueMap& values) const {
@@ -179,4 +205,38 @@ const cocos2d::Rect& PlayLayer::getVisibleArea(cocos2d::Camera* camera) const {
 
 const cocos2d::Rect& PlayLayer::getVisibleArea() const {
 	return getVisibleArea(_camera);
+}
+
+void PlayLayer::setupCameraBetween(const cocos2d::Vec2& left, const cocos2d::Vec2& right, const bool smooth) {
+
+	const Rect& visibleArea = getVisibleArea();
+
+	Vec2 center;
+	center.x = (left.x + right.x) / 2;
+	center.y = (left.y + right.y) / 2;
+
+	const float padding = 250.f;
+	const float lengthBetween = right.x - left.x + padding * 2;
+	const float zoom = lengthBetween / visibleArea.size.width;
+
+	Vec2 cameraPos(center - visibleArea.size / 2 * zoom);
+
+	const int smoothTag = 1;
+	_camera->stopAllActionsByTag(smoothTag);
+
+	if (smooth) {
+		const float duration = 1.f;
+
+		ActionInterval* moveAction, *scaleAction, *spawnAction;
+		moveAction = EaseCubicActionInOut::create(MoveTo::create(duration, Vec3(cameraPos.x, cameraPos.y, _camera->getPositionZ())));
+		scaleAction = EaseCubicActionInOut::create(ScaleTo::create(duration, zoom));
+		spawnAction = Spawn::createWithTwoActions(moveAction, scaleAction);
+		spawnAction->setTag(smoothTag);
+
+		_camera->runAction(spawnAction);
+	}
+	else {
+		_camera->setPosition(cameraPos);
+		_camera->setScale(zoom);
+	}
 }

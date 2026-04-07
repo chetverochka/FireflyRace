@@ -637,6 +637,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\Classes\Firefly.h" />
     <ClInclude Include="..\Classes\Level.h" />
     <ClInclude Include="..\Classes\ObjectEventProtocol.h" />
     <ClInclude Include="..\Classes\ObjectSprite.h" />
@@ -644,6 +645,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\projectscpp\cocos2d\FireflyRace\Classes\AppDelegate.h" />
     <ClInclude Include="D:\projectscpp\cocos2d\FireflyRace\proj.win32\main.h" />
     <ClInclude Include="D:\projectscpp\cocos2d\FireflyRace\proj.win32\resource.h" />
+    <ClCompile Include="..\Classes\Firefly.cpp" />
     <ClCompile Include="..\Classes\Level.cpp" />
     <ClCompile Include="..\Classes\ObjectEventProtocol.cpp" />
     <ClCompile Include="..\Classes\ObjectSprite.cpp" />
