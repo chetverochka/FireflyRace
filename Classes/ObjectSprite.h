@@ -18,13 +18,14 @@ public:
 	~ObjectSprite();
 
 	bool init() override;
-
+	void onEnter() override;
+ 
 	bool isPlayable() { return (bool)(_eventNotifier); }
 
 	void updateRealTransform();
 	void updateEEEffects(const cocos2d::Rect& visibleArea, const float enterDistance, const float exitDistance); // update enter+exit effects
 	// public setters
-	inline void setTrailPosition(const cocos2d::Vec2& trailPosition);
+	virtual void setTrailPosition(const cocos2d::Vec2& trailPosition);
 
 	// public getters
 	inline const cocos2d::Vec2& getTrailPosition() const { return _trailPosition; }

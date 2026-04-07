@@ -34,6 +34,7 @@ PlayLayer::PlayLayer()
 	, _batchNodeMiddle(NULL)
 	, _allObjects({})
 	, _AtoBLine(NULL)
+	, _levelCompleted(false)
 {
 
 }
@@ -73,6 +74,9 @@ bool PlayLayer::initWithData(Level& level) {
 	_camera->setCameraFlag(CAMERA_FLAG);
 	addChild(_camera, 10);
 
+	_previousCameraPosition = _camera->getPosition();
+	_cameraMoved = true;
+
 	_APointObject = ObjectSprite::create();
 	_BPointObject = ObjectSprite::create();
 	_APointObject->setTexture("APointObject.png");
@@ -101,19 +105,24 @@ void PlayLayer::update(float deltaTime) {
 	for (int i = 0; i < _allObjects.size(); i++) {
 		ObjectSprite* object = _allObjects.at(i);
 
-		// should be at the and of all logic operations in this iteration
-		/*if (object->isRealTransformDirty()) {
-			object->updateRealTransform();
-		}*/
+		if (_cameraMoved) {
+			object->updateEEEffects(getVisibleArea(), 100.f, 100.f);
+		}
+	}
+
+	if (!_levelCompleted) {
+		_firefly->updateMoving(deltaTime);
+	}
+
+	const bool fireflyFinished = _firefly->getTrailPosition().x >= _BPointObject->getTrailPosition().x;
+	if (fireflyFinished && !_levelCompleted) {
+		_levelCompleted = true;
+		// this->onLevelCompleted();
+		CCLOG("Level Completed!");
 	}
 
 	// update camera
-	/*const Size visibleSize = Director::sharedDirector()->getVisibleSize();
-	const Vec2 targetCameraPos = _APointObject->getPosition();
-	Vec2 cameraPos;
-	cameraPos.x = targetCameraPos.x - visibleSize.width / 2;
-	cameraPos.y = targetCameraPos.y - visibleSize.height / 2;
-	_camera->setPosition(cameraPos);*/
+	updateCamera(deltaTime);
 }
 
 ObjectSprite* PlayLayer::createObject(cocos2d::ValueMap& values) const {
@@ -140,10 +149,8 @@ ObjectSprite* PlayLayer::createObject(cocos2d::ValueMap& values) const {
 }
 
 bool PlayLayer::loadLevel(Level& level) {
-	_APointObject->setPositionX(level.APosX);
-	_BPointObject->setPositionX(level.BPosX);
-
-
+	_APointObject->setTrailPosition(Vec2(level.APosX, 0.f));
+	_BPointObject->setTrailPosition(Vec2(level.BPosX, 0.f));
 
 	return true;
 }
@@ -160,7 +167,7 @@ bool PlayLayer::addObject(ObjectSprite* object) {
 
 	object->setEventNotifier(this);
 	object->setCameraMask(CAMERA_FLAG_UINT, true);
-
+	
 	return true;
 }
 
@@ -239,4 +246,15 @@ void PlayLayer::setupCameraBetween(const cocos2d::Vec2& left, const cocos2d::Vec
 		_camera->setPosition(cameraPos);
 		_camera->setScale(zoom);
 	}
+}
+
+void PlayLayer::updateCamera(float deltaTime) {
+	Vec2 currentPosition = _camera->getPosition();
+
+	_cameraMoved = false;
+	if (_previousCameraPosition != currentPosition) {
+		_cameraMoved = true;
+	}
+
+	_previousCameraPosition = currentPosition;
 }

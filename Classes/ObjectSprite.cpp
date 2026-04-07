@@ -4,7 +4,7 @@
 USING_NS_CC;
 
 ObjectSprite::ObjectSprite() 
-	
+	: _eeMultiplier(1.f)
 {
 
 }
@@ -21,6 +21,11 @@ bool ObjectSprite::init() {
 
 
 	return true;
+}
+
+void ObjectSprite::onEnter() {
+	Sprite::onEnter();
+	updateRealTransform();
 }
 
 void ObjectSprite::updateRealTransform() {

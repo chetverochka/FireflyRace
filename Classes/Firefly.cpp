@@ -3,6 +3,8 @@
 
 USING_NS_CC;
 
+const float Firefly::MOVE_SPEED = 200.f;
+
 Firefly::Firefly() 
 	: _glowSprite(NULL)
 	, _particles(NULL)
@@ -16,7 +18,7 @@ Firefly::~Firefly() {
 }
 
 bool Firefly::init() {
-	if (!Sprite::init()) {
+	if (!ObjectSprite::init()) {
 		return false;
 	}
 
@@ -39,10 +41,17 @@ bool Firefly::init() {
 	}
 
 	_effectsNode->retain();
-	_effectsNode->addChild(_particles, -1);
-	_effectsNode->addChild(_glowSprite, 0);
+	_effectsNode->addChild(_particles, 0);
+	_effectsNode->addChild(_glowSprite, 1);
 
 	return true;
+}
+
+void Firefly::setTrailPosition(const Vec2& trailPosition) {
+	ObjectSprite::setTrailPosition(trailPosition);
+
+	_particles->setPosition(trailPosition);
+	_glowSprite->setPosition(trailPosition);
 }
 
 void Firefly::addEffectsNode(Node* parent, const int zOrder) {
@@ -54,4 +63,12 @@ void Firefly::removeEffectsNode() {
 	if (_effectsNode->getParent()) {
 		_effectsNode->removeFromParent();
 	}
+}
+
+void Firefly::updateMoving(float deltaTime) {
+	Vec2 position = getTrailPosition();
+
+	position.x += MOVE_SPEED * deltaTime;
+
+	setTrailPosition(position);
 }

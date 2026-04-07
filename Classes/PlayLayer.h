@@ -34,6 +34,8 @@ public:
 
 	void setupCameraBetween(const cocos2d::Vec2& left, const cocos2d::Vec2& right, const bool smooth);
 private:
+	void updateCamera(float deltaTime);
+
 	ObjectSprite* _APointObject;
 	ObjectSprite* _BPointObject;
 	ObjectSprite* _currentObject;
@@ -47,6 +49,10 @@ private:
 
 	cocos2d::DrawNode* _AtoBLine;
 	Firefly* _firefly;
+
+	cocos2d::Vec2 _previousCameraPosition;
+	bool _cameraMoved;
+	bool _levelCompleted;
 };
 
 #endif //!__PLAY_LAYER_H__
