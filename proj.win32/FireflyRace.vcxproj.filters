@@ -34,6 +34,9 @@
     <ClCompile Include="..\Classes\PauseLayer.cpp">
       <Filter>Source Files\Classes</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\GameButtons.cpp">
+      <Filter>Source Files\Classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D:\projectscpp\cocos2d\FireflyRace\Classes\AppDelegate.h">
@@ -88,6 +91,9 @@
       <Filter>Source Files\Classes</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\Definitions.h">
+      <Filter>Source Files\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\GameButtons.h">
       <Filter>Source Files\Classes</Filter>
     </ClInclude>
   </ItemGroup>

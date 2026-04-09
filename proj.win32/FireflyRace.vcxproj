@@ -640,6 +640,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="..\Classes\BreakPoint.h" />
     <ClInclude Include="..\Classes\Definitions.h" />
     <ClInclude Include="..\Classes\Firefly.h" />
+    <ClInclude Include="..\Classes\GameButtons.h" />
     <ClInclude Include="..\Classes\Level.h" />
     <ClInclude Include="..\Classes\ObjectEventProtocol.h" />
     <ClInclude Include="..\Classes\GameObject.h" />
@@ -651,6 +652,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\projectscpp\cocos2d\FireflyRace\proj.win32\resource.h" />
     <ClCompile Include="..\Classes\BreakPoint.cpp" />
     <ClCompile Include="..\Classes\Firefly.cpp" />
+    <ClCompile Include="..\Classes\GameButtons.cpp" />
     <ClCompile Include="..\Classes\Level.cpp" />
     <ClCompile Include="..\Classes\ObjectEventProtocol.cpp" />
     <ClCompile Include="..\Classes\GameObject.cpp" />

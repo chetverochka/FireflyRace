@@ -3,6 +3,7 @@
 #include "Level.h"
 #include "Definitions.h"
 #include "BreakPoint.h"
+#include "GameButtons.h"
 
 USING_NS_CC;
 
@@ -29,6 +30,17 @@ bool PlayScene::init() {
 	addChild(_playLayer);
 	
 	initProgressBar();
+
+	Menu* menu = Menu::create({});
+	
+	SpriteButton* button = new SpriteButton();
+	button->autorelease();
+	button->init(Sprite::create("fonts/WhiteFont.png"));
+	button->setAnchorPoint(Vec2(0, 0));
+	button->runAction(RotateBy::create(1.f, 360.f));
+	menu->addChild(button);
+
+	addChild(menu, 0);
 	
 	return true;
 }
