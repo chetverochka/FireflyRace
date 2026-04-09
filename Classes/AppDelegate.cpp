@@ -1,6 +1,7 @@
 #include "AppDelegate.h"
 #include "PlayLayer.h"
 #include "Level.h"
+#include "PlayScene.h"
 
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
@@ -73,11 +74,13 @@ bool AppDelegate::applicationDidFinishLaunching() {
     
     register_all_packages();
 
-    Level level;
+   /* Level level;
     level.APosX = 0;
     level.BPosX = 1000;
 
-    Scene* scene = PlayLayer::scene(level);
+    Scene* scene = PlayLayer::scene(level);*/
+
+    Scene* scene = PlayScene::create();
     director->runWithScene(scene);
 
     return true;

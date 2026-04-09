@@ -1,7 +1,8 @@
 #include "PlayLayer.h"
 #include "Level.h"
-#include "ObjectSprite.h"
+#include "GameObject.h"
 #include "Firefly.h"
+#include "BreakPoint.h"
 
 USING_NS_CC;
 
@@ -13,6 +14,15 @@ Scene* PlayLayer::scene(Level& level) {
 
 	if (layer && layer->initWithData(level)) {
 		layer->autorelease();
+
+		
+		for (int i = 0; i < 4; i++) {
+			BreakPoint* bp = BreakPoint::create();
+			bp->setTrailPosition(Vec2(150 + i * 100, 0));
+			layer->addObject(bp);
+		}
+
+		layer->runGame();
 
 		Scene* scene = Scene::create();
 		if (scene) {
@@ -26,6 +36,19 @@ Scene* PlayLayer::scene(Level& level) {
 	return NULL;
 }
 
+PlayLayer* PlayLayer::createWithLevel(Level& level) {
+	PlayLayer* ret = new(std::nothrow) PlayLayer();
+
+	if (ret && ret->initWithData(level)) {
+		ret->autorelease();
+		return ret;
+	}
+
+	CC_SAFE_DELETE(ret);
+	return NULL;
+}
+
+
 PlayLayer::PlayLayer() 
 	: _APointObject(NULL)
 	, _BPointObject(NULL)
@@ -35,6 +58,8 @@ PlayLayer::PlayLayer()
 	, _allObjects({})
 	, _AtoBLine(NULL)
 	, _levelCompleted(false)
+	, _gameRunning(false)
+	, _gamePaused(false)
 {
 
 }
@@ -54,6 +79,17 @@ bool PlayLayer::initWithData(Level& level) {
 	}
 
 	scheduleUpdate();
+
+	EventListenerTouchOneByOne* touchListener = EventListenerTouchOneByOne::create();
+	touchListener->setSwallowTouches(true);
+	touchListener->onTouchBegan = CC_CALLBACK_2(PlayLayer::ccTouchDown, this);
+	touchListener->onTouchMoved = CC_CALLBACK_2(PlayLayer::ccTouchMove, this);
+	touchListener->onTouchEnded = CC_CALLBACK_2(PlayLayer::ccTouchUp, this);
+	getEventDispatcher()->addEventListenerWithSceneGraphPriority(touchListener, this);
+
+	EventListenerMouse* mouseListener = EventListenerMouse::create();
+	mouseListener->onMouseScroll = CC_CALLBACK_1(PlayLayer::ccMouseScroll, this);
+	getEventDispatcher()->addEventListenerWithSceneGraphPriority(mouseListener, this);
 
 	_batchNodeBottom = Node::create();
 	addChild(_batchNodeBottom, -1);
@@ -77,8 +113,8 @@ bool PlayLayer::initWithData(Level& level) {
 	_previousCameraPosition = _camera->getPosition();
 	_cameraMoved = true;
 
-	_APointObject = ObjectSprite::create();
-	_BPointObject = ObjectSprite::create();
+	_APointObject = GameObject::create();
+	_BPointObject = GameObject::create();
 	_APointObject->setTexture("APointObject.png");
 	_BPointObject->setTexture("BPointObject.png");
 	addObject(_APointObject);
@@ -90,7 +126,7 @@ bool PlayLayer::initWithData(Level& level) {
 
 	_firefly = Firefly::create();
 	_firefly->addEffectsNode(this, -10);
-	addChild(_firefly, 10);
+	addObject(_firefly);
 
 	setCameraMask(CAMERA_FLAG_UINT, true);
 
@@ -103,14 +139,14 @@ void PlayLayer::update(float deltaTime) {
 	Layer::update(deltaTime);
 
 	for (int i = 0; i < _allObjects.size(); i++) {
-		ObjectSprite* object = _allObjects.at(i);
+		GameObject* object = _allObjects.at(i);
 
 		if (_cameraMoved) {
-			object->updateEEEffects(getVisibleArea(), 100.f, 100.f);
+			object->updateEEEffects(getVisibleArea(), 50.f, 50.f);
 		}
 	}
 
-	if (!_levelCompleted) {
+	if (!_levelCompleted && _gameRunning && !_gamePaused) {
 		_firefly->updateMoving(deltaTime);
 	}
 
@@ -125,19 +161,22 @@ void PlayLayer::update(float deltaTime) {
 	updateCamera(deltaTime);
 }
 
-ObjectSprite* PlayLayer::createObject(cocos2d::ValueMap& values) const {
+GameObject* PlayLayer::createObject(cocos2d::ValueMap& values) const {
 	const int id = values.count("id") > 0 ? values["id"].asInt() : 0;
 
-	ObjectSprite* object = NULL;
+	GameObject* object = NULL;
 
 	switch (id) {
 	default:
 	case 0:
-		object = ObjectSprite::create();
+		object = GameObject::create();
 		break;
 	case 1: // [ A ] Object
 	case 2: // [ B ] Object
-		object = ObjectSprite::create();
+		object = GameObject::create();
+		break;
+	case 3:
+		object = BreakPoint::create();
 		break;
 	}
 
@@ -155,23 +194,31 @@ bool PlayLayer::loadLevel(Level& level) {
 	return true;
 }
 
-bool PlayLayer::addObject(ObjectSprite* object) {
+bool PlayLayer::addObject(GameObject* object) {
 	if (_allObjects.contains(object)) {
 		return false;
 	}
 	_allObjects.pushBack(object);
 	
 	if (!object->getParent()) {
-		_batchNodeBottom->addChild(object);
+		_batchNodeBottom->addChild(object, object->getDefaultZOrder());
+	}
+	else {
+		object->setLocalZOrder(object->getDefaultZOrder());
 	}
 
 	object->setEventNotifier(this);
 	object->setCameraMask(CAMERA_FLAG_UINT, true);
 	
+	BreakPoint* breakPoint = dynamic_cast<BreakPoint*>(object);
+	if (breakPoint) {
+		_breakPoints.pushBack(breakPoint);
+	}
+
 	return true;
 }
 
-bool PlayLayer::removeObject(ObjectSprite* object) {
+bool PlayLayer::removeObject(GameObject* object) {
 	if (!_allObjects.contains(object)) {
 		return false;
 	}
@@ -192,20 +239,21 @@ bool PlayLayer::removeObject(ObjectSprite* object) {
 
 	object->setEventNotifier(NULL);
 
+	BreakPoint* breakPoint = dynamic_cast<BreakPoint*>(object);
+	if (breakPoint) {
+		_breakPoints.eraseObject(breakPoint);
+	}
+
 	return true;
 }
 
 const cocos2d::Rect& PlayLayer::getVisibleArea(cocos2d::Camera* camera) const {
 	// static is too dangerous here
 	static const Size visibleSize = Director::sharedDirector()->getVisibleSize(); 
-	static float zoomX, zoomY;
-
-	zoomX = 1.f;
-	zoomY = 1.f;
-
+	
 	Rect ret;
-	ret.size = Size(visibleSize.width * zoomX, visibleSize.height * zoomY);
-	ret.origin = camera->getPosition() - (ret.size / 2);
+	ret.size = Size(visibleSize.width * camera->getScaleX(), visibleSize.height * camera->getScaleY());
+	ret.origin = camera->getPosition();
 
 	return ret;
 }
@@ -257,4 +305,82 @@ void PlayLayer::updateCamera(float deltaTime) {
 	}
 
 	_previousCameraPosition = currentPosition;
+}
+
+bool PlayLayer::ccTouchDown(cocos2d::Touch* touch, cocos2d::Event* event) {
+	return true;
+}
+void PlayLayer::ccTouchMove(cocos2d::Touch* touch, cocos2d::Event* event) {
+	const Vec2 touchDelta = touch->getDelta();
+
+	_camera->setPosition(_camera->getPosition() - touchDelta * _camera->getScale());
+}
+bool PlayLayer::ccTouchUp(cocos2d::Touch* touch, cocos2d::Event* event) {
+	return true;
+}
+
+void PlayLayer::ccMouseScroll(cocos2d::EventMouse* event) {
+	const float scroll = event->getScrollY();
+
+	const Vec2 previousPosition = _camera->getPosition();
+	const float previousScale = _camera->getScale();
+	const float newScale = previousScale + scroll * 0.06f;
+
+	_camera->setScale(newScale);
+
+	const Size visibleSize = Director::getInstance()->getVisibleSize();
+	const Size sizeDiff = (visibleSize * newScale) - (visibleSize * previousScale);
+
+	Vec2 newPosition = previousPosition - (sizeDiff / 2);
+	_camera->setPosition(newPosition);
+}
+
+
+static void sortByTrailX(cocos2d::Vector<GameObject*>& objects) {
+	std::sort(objects.begin(), objects.end(), [](GameObject* a, GameObject* b) {
+		return a->getTrailPosition().x > b->getTrailPosition().x;
+		});
+}
+
+void PlayLayer::runGame() {
+	if (_gameRunning)
+		return;
+	_gameRunning = true;
+
+#pragma region 0
+	/*
+		при старте игры определяется порядок объектов которые игрок должен преодлеть, 
+		для этого все нужные объекты идут в массив, сортируются по возростанию X и
+		указывается нулевой индекс текущего объекта
+	*/
+	cocos2d::Vector<GameObject*> sequence;
+	for (int i = 0; i < _breakPoints.size(); i++)
+		sequence.pushBack(_breakPoints.at(i));
+	sortByTrailX(sequence);
+	sequence.insert(0, _APointObject);
+	sequence.pushBack(_BPointObject);
+#pragma endregion 0
+
+
+}
+
+void PlayLayer::stopGame() {
+	if (!_gameRunning)
+		return;
+
+	_gameRunning = false;
+}
+
+void PlayLayer::pauseGame() {
+	if (_gamePaused)
+		return;
+
+	_gamePaused = true;
+}
+
+void PlayLayer::resumeGame() {
+	if (!_gamePaused)
+		return;
+
+	_gamePaused = false;
 }

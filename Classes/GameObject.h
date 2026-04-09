@@ -1,21 +1,22 @@
-#ifndef __OBJECT_SPRITE_H__
-#define __OBJECT_SPRITE_H__
+#ifndef __GAME_OBJECT_H__
+#define __GAME_OBJECT_H__
 
 #include "cocos2d.h"
 #include "ObjectEventProtocol.h"
 
-class ObjectSprite : public cocos2d::Sprite {
+class GameObject : public cocos2d::Sprite {
 public:
 	enum EEEffect { //Enter+Exit effect
 		NONE,
 		SCALE,
-		FADE
+		FADE,
+		MOVE_VERTICAL
 	};
 
-	CREATE_FUNC(ObjectSprite);
+	CREATE_FUNC(GameObject);
 
-	ObjectSprite();
-	~ObjectSprite();
+	GameObject();
+	~GameObject();
 
 	bool init() override;
 	void onEnter() override;
@@ -29,6 +30,8 @@ public:
 
 	// public getters
 	inline const cocos2d::Vec2& getTrailPosition() const { return _trailPosition; }
+
+	virtual const int getDefaultZOrder() { return 0; }
 protected:
 	void applyEEEffect(const EEEffect& effect, cocos2d::Vec2& position, cocos2d::Vec2& scale, uint8_t& opacity);
 private:
@@ -43,4 +46,4 @@ private:
 #pragma endregion SIMPLE_GETTERS_AND_SETTERS
 };
 
-#endif //!__OBJECT_SPRITE_H__
+#endif //!__GAME_OBJECT_H__

@@ -1,19 +1,19 @@
-#include "ObjectSprite.h"
+#include "GameObject.h"
 #include <cmath>
 
 USING_NS_CC;
 
-ObjectSprite::ObjectSprite() 
+GameObject::GameObject() 
 	: _eeMultiplier(1.f)
 {
 
 }
 
-ObjectSprite::~ObjectSprite() {
+GameObject::~GameObject() {
 
 }
 
-bool ObjectSprite::init() {
+bool GameObject::init() {
 	if (!Sprite::init()) {
 		return false;
 	}
@@ -23,12 +23,12 @@ bool ObjectSprite::init() {
 	return true;
 }
 
-void ObjectSprite::onEnter() {
+void GameObject::onEnter() {
 	Sprite::onEnter();
 	updateRealTransform();
 }
 
-void ObjectSprite::updateRealTransform() {
+void GameObject::updateRealTransform() {
 	Vec2 absolutePosition;
 	absolutePosition.x = _trailPosition.x;
 	absolutePosition.y = _trailPosition.y;
@@ -36,7 +36,7 @@ void ObjectSprite::updateRealTransform() {
 	Vec2 absoluteScale(1.f, 1.f);
 	uint8_t opacity = 255;
 
-	applyEEEffect(EEEffect::SCALE, absolutePosition, absoluteScale, opacity);
+	applyEEEffect(EEEffect::MOVE_VERTICAL, absolutePosition, absoluteScale, opacity);
 
 	setPosition(absolutePosition);
 	setScaleX(absoluteScale.x);
@@ -45,7 +45,7 @@ void ObjectSprite::updateRealTransform() {
 }
 
 // update enter+exit effects
-void ObjectSprite::updateEEEffects(const Rect& visibleArea, const float enterDistance, const float exitDistance) {
+void GameObject::updateEEEffects(const Rect& visibleArea, const float enterDistance, const float exitDistance) {
 	const float& x = getTrailPosition().x;
 
 	float enterMultiplier, exitMultiplier;
@@ -65,26 +65,32 @@ void ObjectSprite::updateEEEffects(const Rect& visibleArea, const float enterDis
 }
 
 
-void ObjectSprite::setTrailPosition(const cocos2d::Vec2& trailPosition) {
+void GameObject::setTrailPosition(const cocos2d::Vec2& trailPosition) {
 	if (trailPosition != _trailPosition) {
 		_trailPosition = trailPosition;
 		updateRealTransform();
 	}
 }
 
-void ObjectSprite::applyEEEffect(const EEEffect& effect, Vec2& position, Vec2& scale, uint8_t& opacity) {
+void GameObject::applyEEEffect(const EEEffect& effect, Vec2& position, Vec2& scale, uint8_t& opacity) {
 	const float multiplier = _eeMultiplier;
 	
 	switch (effect) {
 	default:
 	case EEEffect::NONE:
 		break;
-	case EEEffect::FADE:
+	/*case EEEffect::FADE:
 		opacity *= multiplier;
-		break;
+		break;*/
 	case EEEffect::SCALE:
 		scale.x *= multiplier;
 		scale.y *= multiplier;
 		break;
+	case EEEffect::MOVE_VERTICAL:
+		position.y += 170.f * (1 - multiplier);
+		opacity *= multiplier;
+		break;
 	}
+
+	opacity *= (effect == EEEffect::NONE) ? 1.f : multiplier;
 }

@@ -18,7 +18,7 @@ Firefly::~Firefly() {
 }
 
 bool Firefly::init() {
-	if (!ObjectSprite::init()) {
+	if (!GameObject::init()) {
 		return false;
 	}
 
@@ -43,12 +43,13 @@ bool Firefly::init() {
 	_effectsNode->retain();
 	_effectsNode->addChild(_particles, 0);
 	_effectsNode->addChild(_glowSprite, 1);
-
+	
+	schedule([this](float dt) { spawnGhost(dt); }, 0.1f, "spawn_ghost");
 	return true;
 }
 
 void Firefly::setTrailPosition(const Vec2& trailPosition) {
-	ObjectSprite::setTrailPosition(trailPosition);
+	GameObject::setTrailPosition(trailPosition);
 
 	_particles->setPosition(trailPosition);
 	_glowSprite->setPosition(trailPosition);
@@ -71,4 +72,18 @@ void Firefly::updateMoving(float deltaTime) {
 	position.x += MOVE_SPEED * deltaTime;
 
 	setTrailPosition(position);
+}
+
+void Firefly::spawnGhost(float deltaTime) {
+	const float size = 150.f;
+
+	DrawNode* rect = DrawNode::create();
+	rect->drawRect(Vec2(0, 0), Vec2(size, size), Color4F(1.f,1.f,1.f, 0.1f));
+	rect->setContentSize(Size(size, size));
+	rect->setAnchorPoint(Vec2(0.5, 0.5));
+	rect->setPosition(getPosition());
+	rect->runAction(Spawn::createWithTwoActions(Sequence::create({ FadeOut::create(0.3f), RemoveSelf::create() }), ScaleTo::create(1.3f, 0.f)));
+	_effectsNode->addChild(rect, 2);
+
+	rect->setCameraMask(getCameraMask());
 }
